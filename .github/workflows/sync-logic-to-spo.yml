@@ -1,3 +1,4 @@
+name: Sync Logic to SPO Knowledge Base
 on:
   push:
     branches:
@@ -5,7 +6,6 @@ on:
       - main
     paths:
       - 'FormScripts/**/*.js'
- 
 jobs:
   analyze-and-sync:
     runs-on: ubuntu-latest
@@ -13,37 +13,28 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2 # Need at least 2 commits to run a diff
+          fetch-depth: 0
  
       - name: Process Changed JS Files
         env:
           POWER_AUTOMATE_URL: ${{ secrets.POWER_AUTOMATE_WEBHOOK_URL }}
         run: |
-          # 1. Get the list of changed .js files in FormScripts
-          # HEAD^ refers to the previous commit
-          FILES=$(git diff --name-only HEAD^ HEAD | grep 'FormScripts/.*\.js$' || true)
- 
-          if [ -z "$FILES" ]; then
-            echo "No JS files changed in this push."
+          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- 'FormScripts/**/*.js')
+          if [ -z "$CHANGED" ]; then
+            echo "No JS files changed."
             exit 0
           fi
  
-          for file in $FILES; do
-            if [ -f "$file" ]; then
-              echo "Processing $file..."
-              # Escape content for JSON safely
-              CONTENT=$(jq -Rs . < "$file")
-              FILENAME=$(basename "$file")
-              # Build the payload file to handle large scripts (1000+ lines)
-              echo "{
+          for file in $CHANGED; do
+            echo "Processing $file..."
+            CONTENT=$(cat "$file" | jq -Rs .)
+            FILENAME=$(basename "$file")
+ 
+            curl -X POST "$POWER_AUTOMATE_URL" \
+              -H "Content-Type: application/json" \
+              -d "{
                 \"filename\": \"$FILENAME\",
                 \"content\": $CONTENT,
                 \"path\": \"$file\"
-              }" > payload.json
- 
-              # Send to Power Automate
-              curl -X POST "$POWER_AUTOMATE_URL" \
-                -H "Content-Type: application/json" \
-                -d @payload.json
-            fi
+              }"
           done
