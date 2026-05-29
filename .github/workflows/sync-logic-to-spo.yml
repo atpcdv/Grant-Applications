@@ -33,13 +33,17 @@ jobs:
               echo "Processing $file..."
               # Escape content for JSON safely
               CONTENT=$(jq -Rs . < "$file")
+              echo "C"
               FILENAME=$(basename "$file")
+              echo "fn"
               jq -Rs --arg filename "$FILENAME" --arg path "$file" \
                 '{filename: $filename, content: ., path: $path}' < "$file" > payload.json
- 
+              echo "jq"
+
               # Send to Power Automate
               curl -X POST "$POWER_AUTOMATE_URL" \
                 -H "Content-Type: application/json" \
                 -d @payload.json
+              echo "Sent to Power Automate"
             fi
           done
