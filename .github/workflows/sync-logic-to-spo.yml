@@ -3,7 +3,7 @@ name: Sync Logic to SPO Knowledge Base
 on:
   push:
     branches:
-      - QA
+      - main
     paths:
       - 'FormScripts/**/*.js'
  
