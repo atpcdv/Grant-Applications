@@ -3,6 +3,7 @@ name: Sync Logic to SPO Knowledge Base
 on:
   push:
     branches:
+      - dev
       - main
     paths:
       - 'FormScripts/**/*.js'
@@ -23,7 +24,7 @@ jobs:
  
       - name: Get Changed JS Files
         id: changed-files
-        uses: tj-actions/changed-files@d6babd37598da5bc4824b90d24483b9c6f966144 # v44.5.2
+        uses: tj-actions/changed-files@47
         with:
           files: |
             FormScripts/**/*.js
