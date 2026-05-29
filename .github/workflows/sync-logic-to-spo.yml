@@ -34,15 +34,8 @@ jobs:
               # Escape content for JSON safely
               CONTENT=$(jq -Rs . < "$file")
               FILENAME=$(basename "$file")
-              # Build the payload file to handle large scripts (1000+ lines)
-              echo #CONTENT
-              echo #FILENAME
-              echo #file
-              echo "{
-                \"filename\": \"$FILENAME\",
-                \"content\": $CONTENT,
-                \"path\": \"$file\"
-              }" > payload.json
+              jq -Rs --arg filename "$FILENAME" --arg path "$file" \
+                '{filename: $filename, content: ., path: $path}' < "$file" > payload.json
  
               # Send to Power Automate
               curl -X POST "$POWER_AUTOMATE_URL" \
