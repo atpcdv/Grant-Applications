@@ -1,0 +1,53 @@
+name: Sync Logic to SPO Knowledge Base
+ 
+on:
+  push:
+    branches:
+      - QA
+    paths:
+      - 'FormScripts/**/*.js'
+ 
+# Lock down permissions to the absolute minimum
+permissions:
+  contents: read
+ 
+jobs:
+  analyze-and-sync:
+    runs-on: ubuntu-latest
+    steps:
+      # Pinning to specific SHAs prevents supply chain attacks
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+ 
+      - name: Get Changed JS Files
+        id: changed-files
+        uses: tj-actions/changed-files@d6babd37598da5bc4824b90d24483b9c6f966144 # v44.5.2
+        with:
+          files: |
+            FormScripts/**/*.js
+ 
+      - name: Process Each File
+        if: steps.changed-files.outputs.any_changed == 'true'
+        env:
+          POWER_AUTOMATE_URL: ${{ secrets.POWER_AUTOMATE_WEBHOOK_URL }}
+        run: |
+          # Mask the URL in logs just in case
+          echo "::add-mask::$POWER_AUTOMATE_URL"
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "Analyzing $file..."
+            # JSON escape content safely
+            CONTENT=$(cat "$file" | jq -Rs .)
+            FILENAME=$(basename "$file")
+            # Binary data delivery is safer for special characters in JS
+            curl -X POST "$POWER_AUTOMATE_URL" \
+              -H "Content-Type: application/json" \
+              --data-binary @- << EOF
+            {
+              "filename": "$FILENAME",
+              "content": $CONTENT,
+              "path": "$file"
+            }
+          EOF
+          done
