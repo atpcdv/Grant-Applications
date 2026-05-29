@@ -35,6 +35,9 @@ jobs:
               CONTENT=$(jq -Rs . < "$file")
               FILENAME=$(basename "$file")
               # Build the payload file to handle large scripts (1000+ lines)
+              echo #CONTENT
+              echo #FILENAME
+              echo #file
               echo "{
                 \"filename\": \"$FILENAME\",
                 \"content\": $CONTENT,
