@@ -41,7 +41,7 @@ FGCOS.CommonHelper.Options = {
         ReadOnly: 3,
         Update: 2
     }
-};
+}; 
 
 FGCOS.Applications.onLoad = async function (executionContext) {
     try {
