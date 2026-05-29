@@ -19,6 +19,9 @@ jobs:
         env:
           POWER_AUTOMATE_URL: ${{ secrets.POWER_AUTOMATE_WEBHOOK_URL }}
         run: |
+          echo "Before SHA: ${{ github.event.before }}"
+          echo "Current SHA: ${{ github.sha }}"
+          echo "All changed Files (No filter):"
           CHANGED=$(git diff --name-only HEAD~1 HEAD -- 'FormScripts/**/*.js')
           if [ -z "$CHANGED" ]; then
             echo "No JS files changed."
