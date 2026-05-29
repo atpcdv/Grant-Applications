@@ -41,6 +41,7 @@ jobs:
               echo "jq"
 
               # Send to Power Automate
+              echo "URL length: ${#POWER_AUTOMATE_URL}"
               curl -X POST "$POWER_AUTOMATE_URL" \
                 -H "Content-Type: application/json" \
                 -d @payload.json
